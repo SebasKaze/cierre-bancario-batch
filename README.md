@@ -34,3 +34,33 @@ Spring Batch utiliza este mecanismo para evitar el procesamiento duplicado. Una 
 5. (MP-4, paso 6) Si mañana llega el archivo del 25 y corres otra vez el cierre del 25, ¿será otra instancia u otra ejecución de la misma? ¿Por qué lo crees?
 
 Será otra instancia. El JobInstance se define por la combinación del nombre del Job y sus JobParameters identificadores. Al enviarle parámetros diferentes o valores nuevos el identificador deberia cambiar.
+
+
+
+
+## Día 2 · El primer chunk
+
+### Boleto de salida
+
+1. ¿Qué diferencia hay entre un step de tipo Tasklet y uno de tipo chunk?
+
+Un Tasklet se ejecuta una sola vez de como una única transacción. Un Chunk procesa grandes volumenes de datos y los divide en bloques 
+
+2. ¿Qué hace cada una de las tres piezas de un chunk? ¿Cuál es opcional?
+
+- ItemReader: Lee los datos secuencialmente de un origen, devolviendo un elemento a la vez o devolviendo null cuando se terminan los datos.
+- ItemProcessor: Recibe el elemento leído, aplica la lógica de negocio y devuelve un elemento modificado. Si el elemento no cumple una condición y no debe ser escrito, el procesador puede devolver null para descartarlo de ese lote. ** Este es opcional ** 
+- ItemWriter: Recibe el chunk de los elementos ya procesados y los guarda físicamente en el destino
+
+3. Con 45 movimientos y chunks de 10, ¿cuántos commits habría? ¿Y con chunks de 50?
+
+Con 45 movimientos haria 5 commits y con 50 unicamente 1
+
+4. ¿Por qué el Escritor recibe el chunk completo y no un movimiento a la vez?
+
+Por una cuestion de optimización, generaría una saturación masiva de la red y de la base de datos debido a las múltiples transacciones abiertas y cerradas.
+
+5. Mi predicción de la MP-3, paso 1: ¿qué habría pasado sin el Procesador?
+
+Se guardarian los datos tal como vienen de los bloques, esto puede generar inconsistencia o agrupaciones erroneas
+
