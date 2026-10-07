@@ -64,3 +64,28 @@ Por una cuestion de optimización, generaría una saturación masiva de la red y
 
 Se guardarian los datos tal como vienen de los bloques, esto puede generar inconsistencia o agrupaciones erroneas
 
+## Día 3 · Parámetros, fallas y reinicio
+
+### Boleto de salida
+
+1. ¿Qué diferencia hay entre una JobInstance y una JobExecution? Usa como ejemplo el cierre del 25.
+
+- JobInstance: Es aquello que se va a ejecutar que involucra la logica del negocio
+- JobExecution: Es el proceso o intento de ejecutar el plan o JobInstance
+
+2. ¿En qué caso Spring Batch se niega a correr un cierre, y en qué caso lo reinicia?
+
+Cuando un job ya esta marcado como completado, lo que si puede reiniciar es aquello marcado como failedo stopped
+
+3. En el reinicio del día 5, ¿por qué el step de carga leyó 10 movimientos y no 20?
+
+Porque ya habia procesado algunos, y empieza desde donde hubo el error para no cargar los anteriores
+
+4. ¿Qué diferencia hay entre un movimiento **filtrado** y uno **omitido**?
+
+- Filtrado: Es un descarte intencional y esperado basado en la lógica de negocio
+- Omitido: Es un descarte causado por una falla o anomalía técnica, pero que el framework decide "dejar pasar" para no arruinar todo el lote
+
+5. ¿Por qué importa el código de salida, si el estado ya queda en las tablas?
+
+Para saber el porque de ciertas cosas como los fallos, ya que ahi podemos ver a detalle que es lo que fallo
