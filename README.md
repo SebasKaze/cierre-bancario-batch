@@ -89,3 +89,50 @@ Porque ya habia procesado algunos, y empieza desde donde hubo el error para no c
 5. ¿Por qué importa el código de salida, si el estado ya queda en las tablas?
 
 Para saber el porque de ciertas cosas como los fallos, ya que ahi podemos ver a detalle que es lo que fallo
+
+
+
+## Día 4 · De MySQL a MongoDB
+
+### Boleto de salida
+
+1. ¿Qué hace cada uno de los tres steps de tu Job, y de qué tipo es cada uno?
+
+Son 3 steps.
+- verificarArchivoStep: Verifica que los movimientos en base a las fechas existan, si no arroja una excepcion y detiene la ejecucion.
+- cargarMovimientosStep: Procesa los datos, escribe los chunks en la BD 
+- publicarSaldosStep: Lee la informacion de la BD con una consulta y manda estos datos a Mongo
+
+2. ¿Por qué el cierre del 9 no duplicó los saldos, y el del 10 (sin `@Id`) sí?
+
+Al quitar el Id no reconoce la cuenta, entonces la crea, esto crea duplicados aunque con informacion diferente
+
+3. Al reiniciar el cierre del 11, ¿por qué no se cargó otra vez el archivo?
+
+Porque ya habia un registro de donde se quedo, solo el step 3 y se cargo la informacion
+
+4. ¿Qué diferencia hay entre `spring-boot-starter-data-mongodb` y «Spring Batch MongoDB» (`batch-data-mongodb`)?
+
+La principal diferencia que existe es en su proposito, spring-boot-starter-data-mongodb tiene como proposito el CRUD y provee la conexion a base de datos.
+
+Por otro lado, batch-data-mongodb se encarga del tratamiento de informacion masiva 
+
+
+## Lo que aprendí esta semana
+
+(Con tus palabras, en 5 a 10 renglones: qué es un proceso batch, qué piezas tiene un Job y qué hace Spring
+Batch cuando algo falla.)
+
+
+- Un proceso batch es aquel que procesa un gran volumen de datos en una sola instancia, sin que interactue nadie con el, por lo general estan programados para suceder en una hora en concreto.
+- Un job es el proceso de inicio a fin, y esta compuesto por:
+    - Step: una fase del job la cual puede realizar una activdad solamente (Tasklet) o por chunks, y pueden ser leer movimientos, calcular, exportar, entre otros.
+    - Chunk: es el tamaño del bloque en el cual se va a divir la informacion para ser procesada. Si el chunk es 100, se lee y procesa 100 items, los escribe juntos y hace commit de una transacción. Luego repite.
+    - JobParameters: son los parámetros con los que se lanza el Job, por ejemplo, una fecha.
+    - JobInstance: es la ejecución lógica, identificada por el nombre del Job más sus parámetros. “Cierre del 2026-10-08”.
+    - JobExecution: es cada intento concreto de correr esa instancia o ese step. Una JobInstance puede tener varias ejecuciones (la primera falló, la segunda terminó).
+    - JobRepository: guarda todos los metadatos (estado, contadores, errores, posición del reader) en tablas BATCH_*.
+    - JobLauncher: lo que lanza el Job.
+- Spring Batch cuando algo falla tiene varias maneras de sortear un fallo o problema, estan las configurables que en caso de detectar algo no deseado como un nombre mal formateado puede skipearlo. En caso de que haya fallado un chunk hace Rollback desde el chunk donde encontro el problema, sin volver a cargar los anteriores. Tambien permite reiniciar si se relanza el Job con los mismos parámetros, Spring crea una nueva JobExecution de la misma JobInstance. Los steps que ya terminaron se saltan, y el step que falló continúa desde el último chunk confirmado
+    
+
